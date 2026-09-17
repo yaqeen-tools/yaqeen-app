@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { COMPANY } from '../../lib/companyInfo';
+import { ShieldMark, Wordmark } from '../../components/Logo';
 
 type Contract = {
   id: string;
@@ -107,11 +108,8 @@ export default function DashboardPage() {
       <header style={{ background: 'var(--navy)' }}>
         <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 72 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <svg width="30" height="30" viewBox="0 0 80 80" aria-hidden="true">
-              <circle cx="40" cy="40" r="37" fill="none" stroke="#fbf7ee" strokeWidth="3" />
-              <path d="M24 41 L35 52 L57 27" fill="none" stroke="#fbf7ee" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <span style={{ fontSize: 18, fontWeight: 700, color: '#fbf7ee' }}>يقين</span>
+            <ShieldMark size={38} navy="#fbf7ee" brass="var(--brass-light)" />
+            <Wordmark light />
           </div>
           <button onClick={handleLogout} className="btn" style={{ padding: '8px 16px', fontSize: 13.5, background: 'transparent', color: '#fbf7ee', border: '1px solid rgba(251,247,238,0.35)' }}>
             تسجيل خروج
@@ -179,13 +177,16 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <div style={{ marginTop: 48, paddingTop: 20, borderTop: '1px solid var(--line)', fontSize: 12.5, color: 'var(--muted)', lineHeight: 2 }}>
-          <div style={{ fontWeight: 700, color: 'var(--navy)', fontSize: 14, marginBottom: 4 }}>
-            {COMPANY.nameFullAr} — {COMPANY.nameFullEn}
+        <div style={{ marginTop: 48, paddingTop: 24, borderTop: '1px solid var(--line)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
+            <ShieldMark size={40} />
+            <Wordmark />
           </div>
-          <div>{COMPANY.email}</div>
-          <div>{COMPANY.phone}</div>
-          <div>{COMPANY.addressAr}</div>
+          <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 2 }}>
+            <div>{COMPANY.email}</div>
+            <div>{COMPANY.phone}</div>
+            <div>{COMPANY.addressAr}</div>
+          </div>
         </div>
       </div>
     </main>
