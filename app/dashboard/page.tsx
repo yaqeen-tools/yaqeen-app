@@ -24,12 +24,93 @@ type Finding = {
   legal_reference: string | null;
 };
 
-const severityLabel: Record<string, string> = {
-  high: 'خطورة عالية',
-  medium: 'خطورة متوسطة',
-  low: 'خطورة منخفضة',
-  info: 'ملاحظة',
-};
+const copy = {
+  ar: {
+    dir: 'rtl',
+    toggle: 'English',
+    logout: 'تسجيل خروج',
+    defaultOrg: 'مؤسستي',
+    currentPlan: 'باقتك الحالية',
+    planNames: { basic: 'الأساسية', pro: 'الاحترافية', business: 'الأعمال' } as Record<string, string>,
+    usage: 'الاستخدام هذا الشهر',
+    analysesWord: 'تحليل',
+    upgrade: 'ترقية الباقة',
+    upgradeSubject: 'طلب ترقية باقة يقين',
+    upgradeBody: (plan: string, email: string) => `أبي أرقّي باقتي من "${plan}" لباقة أعلى. إيميل حسابي: ${email}`,
+    addTitle: 'إضافة عقد جديد',
+    titlePlaceholder: 'اسم العقد (مثال: عقد إيجار محل - 2026)',
+    textPlaceholder: 'الصق نص العقد هنا (مطلوب للتحليل بالذكاء الاصطناعي)',
+    fileNote: 'الملف يُحفظ كمرجع فقط — التحليل الفعلي يعتمد على النص المكتوب أعلاه.',
+    adding: 'جاري الإضافة...',
+    add: 'إضافة',
+    addError: 'صار خطأ، حاول مرة ثانية',
+    contractsTitle: 'العقود',
+    noContracts: 'ما فيه عقود بعد — أضف أول عقد فوق.',
+    fileAttached: 'ملف مرفق',
+    noFile: 'بدون ملف',
+    statusProcessing: 'بانتظار التحليل',
+    statusAnalyzed: 'تم التحليل',
+    statusFailed: 'فشل التحليل',
+    hideResults: 'إخفاء النتائج',
+    showResults: 'عرض النتائج',
+    analyzing: 'جاري التحليل...',
+    retry: 'إعادة المحاولة',
+    analyze: 'حلل العقد',
+    needTextOrFile: 'أضف نص أو ملف أولاً',
+    genericAnalyzeError: 'صار خطأ بالتحليل',
+    connectionError: 'تعذر الوصول لخدمة التحليل',
+    disclaimer: 'تنويه: هذا تحليل استرشادي أولي بالذكاء الاصطناعي، ولا يغني عن مراجعة محامٍ مرخّص قبل اتخاذ أي قرار.',
+    noFindings: 'ما فيه ملاحظات.',
+    clauseLabel: 'البند',
+    legalLabel: 'المصدر القانوني',
+    severity: { high: 'خطورة عالية', medium: 'خطورة متوسطة', low: 'خطورة منخفضة', info: 'ملاحظة' } as Record<string, string>,
+    loading: '...جاري التحميل',
+    locale: 'ar-AE',
+  },
+  en: {
+    dir: 'ltr',
+    toggle: 'العربية',
+    logout: 'Sign out',
+    defaultOrg: 'My company',
+    currentPlan: 'Current plan',
+    planNames: { basic: 'Basic', pro: 'Pro', business: 'Business' } as Record<string, string>,
+    usage: 'Usage this month',
+    analysesWord: 'analyses',
+    upgrade: 'Upgrade plan',
+    upgradeSubject: 'Yaqeen plan upgrade request',
+    upgradeBody: (plan: string, email: string) => `I'd like to upgrade my plan from "${plan}" to a higher tier. My account email: ${email}`,
+    addTitle: 'Add a new contract',
+    titlePlaceholder: 'Contract name (e.g. Shop Lease Agreement - 2026)',
+    textPlaceholder: 'Paste the contract text here (required for AI analysis)',
+    fileNote: 'The file is stored for reference only — analysis runs on the text above.',
+    adding: 'Adding...',
+    add: 'Add',
+    addError: 'Something went wrong, try again',
+    contractsTitle: 'Contracts',
+    noContracts: 'No contracts yet — add your first one above.',
+    fileAttached: 'File attached',
+    noFile: 'No file',
+    statusProcessing: 'Awaiting analysis',
+    statusAnalyzed: 'Analyzed',
+    statusFailed: 'Analysis failed',
+    hideResults: 'Hide results',
+    showResults: 'Show results',
+    analyzing: 'Analyzing...',
+    retry: 'Retry',
+    analyze: 'Analyze contract',
+    needTextOrFile: 'Add text or a file first',
+    genericAnalyzeError: 'Analysis failed',
+    connectionError: 'Could not reach the analysis service',
+    disclaimer: 'Note: this is a preliminary AI-guided analysis and does not replace review by a licensed lawyer before any decision.',
+    noFindings: 'No findings.',
+    clauseLabel: 'Clause',
+    legalLabel: 'Legal reference',
+    severity: { high: 'High risk', medium: 'Medium risk', low: 'Low risk', info: 'Note' } as Record<string, string>,
+    loading: 'Loading...',
+    locale: 'en-US',
+  },
+} as const;
+
 const severityColor: Record<string, string> = {
   high: 'var(--danger)',
   medium: 'var(--brass)',
@@ -38,6 +119,8 @@ const severityColor: Record<string, string> = {
 };
 
 export default function DashboardPage() {
+  const [lang, setLang] = useState<'ar' | 'en'>('ar');
+  const t = copy[lang];
   const [loading, setLoading] = useState(true);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [orgId, setOrgId] = useState<string | null>(null);
@@ -57,7 +140,6 @@ export default function DashboardPage() {
   const [findingsMap, setFindingsMap] = useState<Record<string, Finding[]>>({});
 
   async function loadData() {
-    // getSession (not getUser) reflects the URL-hash session the client just parsed on load
     const { data: { session } } = await supabase.auth.getSession();
     const user = session?.user;
     if (!user) {
@@ -100,9 +182,6 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
-    // wait for supabase-js to finish parsing any auth tokens in the URL hash
-    // before deciding whether the user is signed in, to avoid a race that
-    // bounces a freshly-authenticated user straight back to /login.
     const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
         loadData();
@@ -122,12 +201,12 @@ export default function DashboardPage() {
 
     const { data: inserted, error: insertError } = await supabase
       .from('contracts')
-      .insert({ organization_id: orgId, uploaded_by: user.id, title, language: 'ar', status: 'processing', raw_text: rawText || null })
+      .insert({ organization_id: orgId, uploaded_by: user.id, title, language: lang, status: 'processing', raw_text: rawText || null })
       .select('id')
       .single();
 
     if (insertError || !inserted) {
-      setAddError('صار خطأ، حاول مرة ثانية');
+      setAddError(t.addError);
       setAdding(false);
       return;
     }
@@ -165,14 +244,14 @@ export default function DashboardPage() {
       });
       const result = await res.json();
       if (!res.ok) {
-        setAnalyzeError((prev) => ({ ...prev, [contractId]: result.error || 'صار خطأ بالتحليل' }));
+        setAnalyzeError((prev) => ({ ...prev, [contractId]: result.error || t.genericAnalyzeError }));
       } else {
         await loadFindings(contractId);
         await loadData();
         setExpandedId(contractId);
       }
     } catch (err) {
-      setAnalyzeError((prev) => ({ ...prev, [contractId]: 'تعذر الوصول لخدمة التحليل' }));
+      setAnalyzeError((prev) => ({ ...prev, [contractId]: t.connectionError }));
     }
     setAnalyzingId(null);
   }
@@ -205,69 +284,75 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--paper)' }}>
-        <div style={{ color: 'var(--muted)' }}>...جاري التحميل</div>
+        <div style={{ color: 'var(--muted)' }}>{t.loading}</div>
       </main>
     );
   }
 
   return (
-    <main dir="rtl" style={{ minHeight: '100vh', background: 'var(--paper)' }}>
+    <main dir={t.dir} style={{ minHeight: '100vh', background: 'var(--paper)' }}>
       <header style={{ background: 'var(--navy)' }}>
         <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 72 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <ShieldMark size={38} navy="#fbf7ee" brass="var(--brass-light)" />
             <Wordmark light />
           </div>
-          <button onClick={handleLogout} className="btn" style={{ padding: '8px 16px', fontSize: 13.5, background: 'transparent', color: '#fbf7ee', border: '1px solid rgba(251,247,238,0.35)' }}>
-            تسجيل خروج
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button
+              onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}
+              style={{ padding: '8px 14px', fontSize: 13, background: 'transparent', color: '#fbf7ee', border: '1px solid rgba(251,247,238,0.35)', borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit' }}
+            >
+              {t.toggle}
+            </button>
+            <button onClick={handleLogout} className="btn" style={{ padding: '8px 16px', fontSize: 13.5, background: 'transparent', color: '#fbf7ee', border: '1px solid rgba(251,247,238,0.35)' }}>
+              {t.logout}
+            </button>
+          </div>
         </div>
       </header>
 
       <div className="container" style={{ padding: '40px 24px' }}>
         <div style={{ marginBottom: 30 }}>
           <div style={{ fontSize: 13.5, color: 'var(--muted)' }}>{userEmail}</div>
-          <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--navy)', margin: '4px 0 0' }}>{orgName ?? 'مؤسستي'}</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--navy)', margin: '4px 0 0' }}>{orgName ?? t.defaultOrg}</h1>
         </div>
 
         <div className="card" style={{ marginBottom: 30, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <div style={{ fontSize: 12.5, color: 'var(--muted)', marginBottom: 4 }}>باقتك الحالية</div>
-            <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--navy)' }}>
-              {plan === 'basic' ? 'الأساسية' : plan === 'pro' ? 'الاحترافية' : 'الأعمال'}
-            </div>
+            <div style={{ fontSize: 12.5, color: 'var(--muted)', marginBottom: 4 }}>{t.currentPlan}</div>
+            <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--navy)' }}>{t.planNames[plan] ?? plan}</div>
           </div>
-          <div style={{ textAlign: 'left' }}>
-            <div style={{ fontSize: 12.5, color: 'var(--muted)', marginBottom: 4 }}>الاستخدام هذا الشهر</div>
+          <div style={{ textAlign: lang === 'ar' ? 'left' : 'right' }}>
+            <div style={{ fontSize: 12.5, color: 'var(--muted)', marginBottom: 4 }}>{t.usage}</div>
             <div style={{ fontSize: 17, fontWeight: 700, color: usedThisMonth >= monthlyLimit ? 'var(--danger)' : 'var(--navy)' }}>
-              {usedThisMonth} / {monthlyLimit} تحليل
+              {usedThisMonth} / {monthlyLimit} {t.analysesWord}
             </div>
           </div>
           {plan !== 'business' && (
             <a
-              href={`mailto:${COMPANY.email}?subject=${encodeURIComponent('طلب ترقية باقة يقين')}&body=${encodeURIComponent(`أبي أرقّي باقتي من "${plan}" لباقة أعلى. إيميل حسابي: ${userEmail ?? ''}`)}`}
+              href={`mailto:${COMPANY.email}?subject=${encodeURIComponent(t.upgradeSubject)}&body=${encodeURIComponent(t.upgradeBody(t.planNames[plan] ?? plan, userEmail ?? ''))}`}
               className="btn btn-ghost"
               style={{ padding: '8px 16px', fontSize: 13 }}
             >
-              ترقية الباقة
+              {t.upgrade}
             </a>
           )}
         </div>
 
         <div className="card" style={{ marginBottom: 30, borderTop: '3px solid var(--brass)' }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--navy)', margin: '0 0 14px' }}>إضافة عقد جديد</h2>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--navy)', margin: '0 0 14px' }}>{t.addTitle}</h2>
           <form onSubmit={handleAddContract} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="اسم العقد (مثال: عقد إيجار محل - 2026)"
+              placeholder={t.titlePlaceholder}
               style={{ padding: '12px 14px', fontSize: 14.5, border: '1px solid var(--line)', borderRadius: 4, fontFamily: 'inherit' }}
             />
             <textarea
               value={rawText}
               onChange={(e) => setRawText(e.target.value)}
-              placeholder="الصق نص العقد هنا (مطلوب للتحليل بالذكاء الاصطناعي)"
+              placeholder={t.textPlaceholder}
               rows={5}
               style={{ padding: '12px 14px', fontSize: 14, border: '1px solid var(--line)', borderRadius: 4, fontFamily: 'inherit', resize: 'vertical' }}
             />
@@ -277,19 +362,17 @@ export default function DashboardPage() {
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               style={{ fontSize: 13.5, color: 'var(--muted)' }}
             />
-            <div style={{ fontSize: 12.5, color: 'var(--muted)' }}>
-              الملف يُحفظ كمرجع فقط — التحليل الفعلي يعتمد على النص المكتوب أعلاه.
-            </div>
+            <div style={{ fontSize: 12.5, color: 'var(--muted)' }}>{t.fileNote}</div>
             <button type="submit" disabled={adding} className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>
-              {adding ? 'جاري الإضافة...' : 'إضافة'}
+              {adding ? t.adding : t.add}
             </button>
             {addError && <div style={{ color: 'var(--danger)', fontSize: 13.5 }}>{addError}</div>}
           </form>
         </div>
 
-        <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--navy)', margin: '0 0 16px' }}>العقود</h2>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--navy)', margin: '0 0 16px' }}>{t.contractsTitle}</h2>
         {contracts.length === 0 ? (
-          <div className="card" style={{ color: 'var(--muted)', fontSize: 14.5 }}>ما فيه عقود بعد — أضف أول عقد فوق.</div>
+          <div className="card" style={{ color: 'var(--muted)', fontSize: 14.5 }}>{t.noContracts}</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {contracts.map((c) => (
@@ -298,8 +381,9 @@ export default function DashboardPage() {
                   <div>
                     <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--navy)' }}>{c.title}</div>
                     <div style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: 4 }}>
-                      {new Date(c.created_at).toLocaleDateString('ar-AE')}
-                      {c.file_path ? ' · ملف مرفق' : ' · بدون ملف'}
+                      {new Date(c.created_at).toLocaleDateString(t.locale)}
+                      {' · '}
+                      {c.file_path ? t.fileAttached : t.noFile}
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -313,11 +397,11 @@ export default function DashboardPage() {
                         color: c.status === 'analyzed' ? 'var(--navy)' : c.status === 'failed' ? 'var(--danger)' : 'var(--brass)',
                       }}
                     >
-                      {c.status === 'processing' ? 'بانتظار التحليل' : c.status === 'analyzed' ? 'تم التحليل' : c.status === 'failed' ? 'فشل التحليل' : c.status}
+                      {c.status === 'processing' ? t.statusProcessing : c.status === 'analyzed' ? t.statusAnalyzed : c.status === 'failed' ? t.statusFailed : c.status}
                     </span>
                     {c.status === 'analyzed' ? (
                       <button onClick={() => toggleExpand(c.id)} className="btn btn-ghost" style={{ padding: '6px 14px', fontSize: 13 }}>
-                        {expandedId === c.id ? 'إخفاء النتائج' : 'عرض النتائج'}
+                        {expandedId === c.id ? t.hideResults : t.showResults}
                       </button>
                     ) : (
                       <button
@@ -325,9 +409,9 @@ export default function DashboardPage() {
                         disabled={analyzingId === c.id || (!c.raw_text && !c.file_path)}
                         className="btn btn-primary"
                         style={{ padding: '6px 14px', fontSize: 13 }}
-                        title={!c.raw_text && !c.file_path ? 'أضف نص أو ملف أولاً' : ''}
+                        title={!c.raw_text && !c.file_path ? t.needTextOrFile : ''}
                       >
-                        {analyzingId === c.id ? 'جاري التحليل...' : c.status === 'failed' ? 'إعادة المحاولة' : 'حلل العقد'}
+                        {analyzingId === c.id ? t.analyzing : c.status === 'failed' ? t.retry : t.analyze}
                       </button>
                     )}
                   </div>
@@ -339,27 +423,25 @@ export default function DashboardPage() {
 
                 {expandedId === c.id && (
                   <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--line)' }}>
-                    <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 12, lineHeight: 1.7 }}>
-                      تنويه: هذا تحليل استرشادي أولي بالذكاء الاصطناعي، ولا يغني عن مراجعة محامٍ مرخّص قبل اتخاذ أي قرار.
-                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 12, lineHeight: 1.7 }}>{t.disclaimer}</div>
                     {(findingsMap[c.id] ?? []).length === 0 ? (
-                      <div style={{ fontSize: 13.5, color: 'var(--muted)' }}>ما فيه ملاحظات.</div>
+                      <div style={{ fontSize: 13.5, color: 'var(--muted)' }}>{t.noFindings}</div>
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                         {findingsMap[c.id].map((f) => (
                           <div key={f.id} style={{ borderInlineStart: `3px solid ${severityColor[f.severity] ?? 'var(--muted)'}`, paddingInlineStart: 12 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                               <span style={{ fontSize: 11.5, fontWeight: 700, color: severityColor[f.severity] ?? 'var(--muted)' }}>
-                                {severityLabel[f.severity] ?? f.severity}
+                                {t.severity[f.severity] ?? f.severity}
                               </span>
                               <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--navy)' }}>{f.title}</span>
                             </div>
                             <div style={{ fontSize: 13.5, color: 'var(--ink)', lineHeight: 1.7, marginBottom: 6 }}>{f.description}</div>
                             {f.clause_reference && (
-                              <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 2 }}>البند: {f.clause_reference}</div>
+                              <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 2 }}>{t.clauseLabel}: {f.clause_reference}</div>
                             )}
                             {f.legal_reference && (
-                              <div style={{ fontSize: 12, color: 'var(--brass)', fontWeight: 500 }}>المصدر القانوني: {f.legal_reference}</div>
+                              <div style={{ fontSize: 12, color: 'var(--brass)', fontWeight: 500 }}>{t.legalLabel}: {f.legal_reference}</div>
                             )}
                           </div>
                         ))}
@@ -380,7 +462,7 @@ export default function DashboardPage() {
           <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 2 }}>
             <div>{COMPANY.email}</div>
             <div>{COMPANY.phone}</div>
-            <div>{COMPANY.addressAr}</div>
+            <div>{lang === 'ar' ? COMPANY.addressAr : COMPANY.addressEn}</div>
           </div>
         </div>
       </div>
