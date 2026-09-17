@@ -180,7 +180,7 @@ export default function DashboardPage() {
         )}
 
         <div style={{ marginTop: 48, paddingTop: 20, borderTop: '1px solid var(--line)', fontSize: 12.5, color: 'var(--muted)' }}>
-          {COMPANY.nameAr} · {COMPANY.addressAr} · {COMPANY.email} · {COMPANY.phone}
+          {COMPANY.nameFullAr} · {COMPANY.addressAr} · {COMPANY.email} · {COMPANY.phone}
         </div>
       </div>
     </main>
