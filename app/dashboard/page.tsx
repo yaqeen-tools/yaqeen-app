@@ -233,6 +233,15 @@ export default function DashboardPage() {
               {usedThisMonth} / {monthlyLimit} تحليل
             </div>
           </div>
+          {plan !== 'business' && (
+            <a
+              href={`mailto:${COMPANY.email}?subject=${encodeURIComponent('طلب ترقية باقة يقين')}&body=${encodeURIComponent(`أبي أرقّي باقتي من "${plan}" لباقة أعلى. إيميل حسابي: ${userEmail ?? ''}`)}`}
+              className="btn btn-ghost"
+              style={{ padding: '8px 16px', fontSize: 13 }}
+            >
+              ترقية الباقة
+            </a>
+          )}
         </div>
 
         <div className="card" style={{ marginBottom: 30, borderTop: '3px solid var(--brass)' }}>
