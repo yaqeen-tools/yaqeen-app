@@ -57,7 +57,9 @@ export default function DashboardPage() {
   const [findingsMap, setFindingsMap] = useState<Record<string, Finding[]>>({});
 
   async function loadData() {
-    const { data: { user } } = await supabase.auth.getUser();
+    // getSession (not getUser) reflects the URL-hash session the client just parsed on load
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
     if (!user) {
       window.location.href = '/login';
       return;
@@ -98,7 +100,15 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
-    loadData();
+    // wait for supabase-js to finish parsing any auth tokens in the URL hash
+    // before deciding whether the user is signed in, to avoid a race that
+    // bounces a freshly-authenticated user straight back to /login.
+    const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
+        loadData();
+      }
+    });
+    return () => authListener.subscription.unsubscribe();
   }, []);
 
   async function handleAddContract(e: React.FormEvent) {
