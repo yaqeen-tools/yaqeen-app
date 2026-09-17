@@ -180,7 +180,9 @@ export default function DashboardPage() {
         )}
 
         <div style={{ marginTop: 48, paddingTop: 20, borderTop: '1px solid var(--line)', fontSize: 12.5, color: 'var(--muted)', lineHeight: 2 }}>
-          <div>{COMPANY.nameFullAr}</div>
+          <div style={{ fontWeight: 700, color: 'var(--navy)', fontSize: 14, marginBottom: 4 }}>
+            {COMPANY.nameFullAr} — {COMPANY.nameFullEn}
+          </div>
           <div>{COMPANY.email}</div>
           <div>{COMPANY.phone}</div>
           <div>{COMPANY.addressAr}</div>
