@@ -42,6 +42,9 @@ export default function DashboardPage() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [orgId, setOrgId] = useState<string | null>(null);
   const [orgName, setOrgName] = useState<string | null>(null);
+  const [plan, setPlan] = useState<string>('basic');
+  const [monthlyLimit, setMonthlyLimit] = useState<number>(10);
+  const [usedThisMonth, setUsedThisMonth] = useState<number>(0);
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [title, setTitle] = useState('');
   const [rawText, setRawText] = useState('');
@@ -63,12 +66,27 @@ export default function DashboardPage() {
 
     const { data: memberships } = await supabase
       .from('memberships')
-      .select('organization_id, organizations(name)')
+      .select('organization_id, organizations(name, plan, monthly_limit)')
       .limit(1);
 
     const org = memberships?.[0] as any;
     if (org?.organization_id) setOrgId(org.organization_id);
     if (org?.organizations?.name) setOrgName(org.organizations.name);
+    if (org?.organizations?.plan) setPlan(org.organizations.plan);
+    if (org?.organizations?.monthly_limit) setMonthlyLimit(org.organizations.monthly_limit);
+
+    if (org?.organization_id) {
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      const { count } = await supabase
+        .from('audit_events')
+        .select('id', { count: 'exact', head: true })
+        .eq('organization_id', org.organization_id)
+        .eq('event_type', 'contract_analysis')
+        .gte('created_at', startOfMonth.toISOString());
+      setUsedThisMonth(count ?? 0);
+    }
 
     const { data: contractsData } = await supabase
       .from('contracts')
@@ -200,6 +218,21 @@ export default function DashboardPage() {
         <div style={{ marginBottom: 30 }}>
           <div style={{ fontSize: 13.5, color: 'var(--muted)' }}>{userEmail}</div>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--navy)', margin: '4px 0 0' }}>{orgName ?? 'مؤسستي'}</h1>
+        </div>
+
+        <div className="card" style={{ marginBottom: 30, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+          <div>
+            <div style={{ fontSize: 12.5, color: 'var(--muted)', marginBottom: 4 }}>باقتك الحالية</div>
+            <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--navy)' }}>
+              {plan === 'basic' ? 'الأساسية' : plan === 'pro' ? 'الاحترافية' : 'الأعمال'}
+            </div>
+          </div>
+          <div style={{ textAlign: 'left' }}>
+            <div style={{ fontSize: 12.5, color: 'var(--muted)', marginBottom: 4 }}>الاستخدام هذا الشهر</div>
+            <div style={{ fontSize: 17, fontWeight: 700, color: usedThisMonth >= monthlyLimit ? 'var(--danger)' : 'var(--navy)' }}>
+              {usedThisMonth} / {monthlyLimit} تحليل
+            </div>
+          </div>
         </div>
 
         <div className="card" style={{ marginBottom: 30, borderTop: '3px solid var(--brass)' }}>
