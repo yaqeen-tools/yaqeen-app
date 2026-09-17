@@ -257,11 +257,11 @@ export default function DashboardPage() {
                         fontWeight: 600,
                         padding: '5px 12px',
                         borderRadius: 20,
-                        background: c.status === 'analyzed' ? '#e7f0ea' : '#f1ebda',
-                        color: c.status === 'analyzed' ? 'var(--navy)' : 'var(--brass)',
+                        background: c.status === 'analyzed' ? '#e7f0ea' : c.status === 'failed' ? '#fbe9e6' : '#f1ebda',
+                        color: c.status === 'analyzed' ? 'var(--navy)' : c.status === 'failed' ? 'var(--danger)' : 'var(--brass)',
                       }}
                     >
-                      {c.status === 'processing' ? 'بانتظار التحليل' : c.status === 'analyzed' ? 'تم التحليل' : c.status}
+                      {c.status === 'processing' ? 'بانتظار التحليل' : c.status === 'analyzed' ? 'تم التحليل' : c.status === 'failed' ? 'فشل التحليل' : c.status}
                     </span>
                     {c.status === 'analyzed' ? (
                       <button onClick={() => toggleExpand(c.id)} className="btn btn-ghost" style={{ padding: '6px 14px', fontSize: 13 }}>
@@ -270,12 +270,12 @@ export default function DashboardPage() {
                     ) : (
                       <button
                         onClick={() => handleAnalyze(c.id)}
-                        disabled={analyzingId === c.id || !c.raw_text}
+                        disabled={analyzingId === c.id || (!c.raw_text && !c.file_path)}
                         className="btn btn-primary"
                         style={{ padding: '6px 14px', fontSize: 13 }}
-                        title={!c.raw_text ? 'أضف نص العقد أولاً' : ''}
+                        title={!c.raw_text && !c.file_path ? 'أضف نص أو ملف أولاً' : ''}
                       >
-                        {analyzingId === c.id ? 'جاري التحليل...' : 'حلل العقد'}
+                        {analyzingId === c.id ? 'جاري التحليل...' : c.status === 'failed' ? 'إعادة المحاولة' : 'حلل العقد'}
                       </button>
                     )}
                   </div>
