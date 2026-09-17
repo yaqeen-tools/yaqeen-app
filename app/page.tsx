@@ -153,10 +153,10 @@ export default function Home() {
             <div>{lang === 'ar' ? COMPANY.addressAr : COMPANY.addressEn}</div>
           </div>
           <div style={{ display: 'flex', gap: 24, fontSize: 13.5, color: 'var(--muted)', flexWrap: 'wrap' }}>
-            <span>{t.footer_about}</span>
-            <span>{t.footer_privacy}</span>
-            <span>{t.footer_terms}</span>
-            <span>{t.footer_contact}</span>
+            <a href="/about">{t.footer_about}</a>
+            <a href="/privacy">{t.footer_privacy}</a>
+            <a href="/terms">{t.footer_terms}</a>
+            <a href="/contact">{t.footer_contact}</a>
           </div>
         </div>
       </footer>
