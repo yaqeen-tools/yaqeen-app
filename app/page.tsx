@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { COMPANY } from '../lib/companyInfo';
+import { ShieldMark, Wordmark } from '../components/Logo';
 
 const copy = {
   ar: {
@@ -58,16 +59,6 @@ const copy = {
   },
 } as const;
 
-function Seal({ size = 40 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 80 80" className="seal" aria-hidden="true">
-      <circle cx="40" cy="40" r="37" fill="none" stroke="var(--navy)" strokeWidth="3" />
-      <circle cx="40" cy="40" r="30" fill="none" stroke="var(--brass)" strokeWidth="1.5" />
-      <path d="M24 41 L35 52 L57 27" fill="none" stroke="var(--navy)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
 export default function Home() {
   const [lang, setLang] = useState<'ar' | 'en'>('ar');
   const t = copy[lang];
@@ -82,15 +73,9 @@ export default function Home() {
     <main dir={t.dir}>
       <header style={{ borderBottom: `1px solid var(--line)`, background: 'var(--navy)' }}>
         <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 72 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <svg width="34" height="34" viewBox="0 0 80 80" aria-hidden="true">
-              <circle cx="40" cy="40" r="37" fill="none" stroke="#fbf7ee" strokeWidth="3" />
-              <circle cx="40" cy="40" r="30" fill="none" stroke="var(--brass-light)" strokeWidth="1.5" />
-              <path d="M24 41 L35 52 L57 27" fill="none" stroke="#fbf7ee" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <span style={{ fontSize: 21, fontWeight: 700, color: '#fbf7ee', letterSpacing: '0.3px' }}>
-              {lang === 'ar' ? 'يقين' : 'Yaqeen'}
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <ShieldMark size={44} navy="#fbf7ee" brass="var(--brass-light)" />
+            <Wordmark light />
           </div>
           <button
             onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}
@@ -105,7 +90,7 @@ export default function Home() {
       <section style={{ background: 'var(--navy)', paddingBottom: 64 }}>
         <div className="container" style={{ maxWidth: 760, paddingTop: 56 }}>
           <div style={{ marginBottom: 28 }}>
-            <Seal size={56} />
+            <ShieldMark size={84} navy="#fbf7ee" brass="var(--brass-light)" />
           </div>
           <h1 style={{ fontSize: 46, lineHeight: 1.2, fontWeight: 700, color: '#fbf7ee', margin: '0 0 22px', letterSpacing: '-0.3px' }}>
             {t.hero_title}
@@ -139,7 +124,7 @@ export default function Home() {
 
       <section style={{ background: '#f1ebda', padding: '48px 0' }}>
         <div className="container" style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
-          <Seal size={44} />
+          <ShieldMark size={64} />
           <div>
             <h2 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 8px', color: 'var(--navy)' }}>{t.trust_title}</h2>
             <p style={{ fontSize: 15, lineHeight: 1.7, color: 'var(--muted)', margin: 0, maxWidth: 560 }}>{t.trust_body}</p>
@@ -157,18 +142,12 @@ export default function Home() {
 
       <footer style={{ borderTop: `1px solid var(--line)`, padding: '32px 0', background: '#f1ebda' }}>
         <div className="container">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-            <svg width="24" height="24" viewBox="0 0 80 80" aria-hidden="true">
-              <circle cx="40" cy="40" r="37" fill="none" stroke="var(--navy)" strokeWidth="3" />
-              <path d="M24 41 L35 52 L57 27" fill="none" stroke="var(--navy)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>{lang === 'ar' ? COMPANY.nameAr : COMPANY.nameEn}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
+            <ShieldMark size={48} />
+            <Wordmark />
           </div>
           <div style={{ fontSize: 13.5, color: 'var(--muted)', marginBottom: 14, fontWeight: 500 }}>{t.footer_tag}</div>
           <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 16, lineHeight: 2 }}>
-            <div style={{ fontWeight: 700, color: 'var(--navy)', fontSize: 14, marginBottom: 4 }}>
-              {COMPANY.nameFullAr} — {COMPANY.nameFullEn}
-            </div>
             <div>{COMPANY.email}</div>
             <div>{COMPANY.phone}</div>
             <div>{lang === 'ar' ? COMPANY.addressAr : COMPANY.addressEn}</div>
