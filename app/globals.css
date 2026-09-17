@@ -1,14 +1,15 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  --ink: #14231f;
-  --paper: #f6f4ee;
-  --line: #d9d4c7;
-  --teal: #1f4d43;
-  --teal-deep: #10302a;
-  --amber: #b8802f;
-  --danger: #9a3324;
-  --muted: #5c6b64;
+  --ink: #191510;
+  --paper: #fbf7ee;
+  --line: #e2d9c5;
+  --navy: #16283d;
+  --navy-deep: #0e1b2a;
+  --brass: #a6752c;
+  --brass-light: #c99a52;
+  --danger: #8b2e22;
+  --muted: #6b6156;
 }
 
 * { box-sizing: border-box; }
@@ -30,7 +31,7 @@ body[data-lang="en"] {
 a { color: inherit; }
 
 .container {
-  max-width: 1040px;
+  max-width: 1080px;
   margin: 0 auto;
   padding: 0 24px;
 }
@@ -39,24 +40,31 @@ a { color: inherit; }
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 13px 26px;
-  border-radius: 6px;
-  font-size: 15px;
-  font-weight: 500;
+  padding: 15px 30px;
+  border-radius: 4px;
+  font-size: 15.5px;
+  font-weight: 600;
   border: 1px solid transparent;
   cursor: pointer;
   text-decoration: none;
 }
-.btn-primary { background: var(--teal); color: #f6f4ee; }
-.btn-primary:hover { background: var(--teal-deep); }
-.btn-ghost { background: transparent; color: var(--teal); border-color: var(--line); }
-.btn-ghost:hover { border-color: var(--teal); }
+.btn-primary { background: var(--navy); color: #fbf7ee; }
+.btn-primary:hover { background: var(--navy-deep); }
+.btn-ghost { background: transparent; color: var(--navy); border-color: var(--line); }
+.btn-ghost:hover { border-color: var(--navy); }
 
 .card {
-  background: #fffdf9;
+  background: #ffffff;
   border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 28px;
+  border-radius: 4px;
+  padding: 30px;
+}
+
+.seal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 @media (max-width: 640px) {
