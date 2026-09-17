@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { COMPANY } from '../../lib/companyInfo';
 
 type Contract = {
   id: string;
@@ -177,6 +178,10 @@ export default function DashboardPage() {
             ))}
           </div>
         )}
+
+        <div style={{ marginTop: 48, paddingTop: 20, borderTop: '1px solid var(--line)', fontSize: 12.5, color: 'var(--muted)' }}>
+          {COMPANY.nameAr} · {COMPANY.addressAr} · {COMPANY.email} · {COMPANY.phone}
+        </div>
       </div>
     </main>
   );
