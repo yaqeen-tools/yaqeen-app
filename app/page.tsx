@@ -166,7 +166,9 @@ export default function Home() {
           </div>
           <div style={{ fontSize: 13.5, color: 'var(--muted)', marginBottom: 14, fontWeight: 500 }}>{t.footer_tag}</div>
           <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 16, lineHeight: 2 }}>
-            <div>{lang === 'ar' ? COMPANY.nameFullAr : COMPANY.nameFullEn}</div>
+            <div style={{ fontWeight: 700, color: 'var(--navy)', fontSize: 14, marginBottom: 4 }}>
+              {COMPANY.nameFullAr} — {COMPANY.nameFullEn}
+            </div>
             <div>{COMPANY.email}</div>
             <div>{COMPANY.phone}</div>
             <div>{lang === 'ar' ? COMPANY.addressAr : COMPANY.addressEn}</div>
