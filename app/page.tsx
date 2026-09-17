@@ -27,6 +27,7 @@ const copy = {
     footer_privacy: 'الخصوصية',
     footer_terms: 'الشروط',
     footer_contact: 'تواصل معنا',
+    footer_tag: 'يقين — الثقة مبنية على الدقة، مو على الحظ',
   },
   en: {
     dir: 'ltr',
@@ -52,8 +53,19 @@ const copy = {
     footer_privacy: 'Privacy',
     footer_terms: 'Terms',
     footer_contact: 'Contact',
+    footer_tag: 'Yaqeen — certainty built on precision, not luck',
   },
 } as const;
+
+function Seal({ size = 40 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 80 80" className="seal" aria-hidden="true">
+      <circle cx="40" cy="40" r="37" fill="none" stroke="var(--navy)" strokeWidth="3" />
+      <circle cx="40" cy="40" r="30" fill="none" stroke="var(--brass)" strokeWidth="1.5" />
+      <path d="M24 41 L35 52 L57 27" fill="none" stroke="var(--navy)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 export default function Home() {
   const [lang, setLang] = useState<'ar' | 'en'>('ar');
@@ -67,70 +79,90 @@ export default function Home() {
 
   return (
     <main dir={t.dir}>
-      <header style={{ borderBottom: '1px solid var(--line)' }}>
-        <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 68 }}>
-          <span style={{ fontSize: 19, fontWeight: 600, color: 'var(--teal-deep)' }}>
-            {lang === 'ar' ? 'يقين' : 'Yaqeen'}
-          </span>
+      <header style={{ borderBottom: `1px solid var(--line)`, background: 'var(--navy)' }}>
+        <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 72 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <svg width="34" height="34" viewBox="0 0 80 80" aria-hidden="true">
+              <circle cx="40" cy="40" r="37" fill="none" stroke="#fbf7ee" strokeWidth="3" />
+              <circle cx="40" cy="40" r="30" fill="none" stroke="var(--brass-light)" strokeWidth="1.5" />
+              <path d="M24 41 L35 52 L57 27" fill="none" stroke="#fbf7ee" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span style={{ fontSize: 21, fontWeight: 700, color: '#fbf7ee', letterSpacing: '0.3px' }}>
+              {lang === 'ar' ? 'يقين' : 'Yaqeen'}
+            </span>
+          </div>
           <button
             onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}
-            className="btn btn-ghost"
-            style={{ padding: '8px 16px', fontSize: 14 }}
+            className="btn"
+            style={{ padding: '9px 18px', fontSize: 14, background: 'transparent', color: '#fbf7ee', border: '1px solid rgba(251,247,238,0.35)' }}
           >
             {t.nav_toggle}
           </button>
         </div>
       </header>
 
-      <section className="container" style={{ padding: '76px 24px 56px', maxWidth: 720 }}>
-        <h1 style={{ fontSize: 40, lineHeight: 1.25, fontWeight: 600, color: 'var(--teal-deep)', margin: '0 0 20px' }}>
-          {t.hero_title}
-        </h1>
-        <p style={{ fontSize: 17, lineHeight: 1.75, color: 'var(--muted)', margin: '0 0 32px' }}>
-          {t.hero_sub}
-        </p>
-        <a href="#pricing" className="btn btn-primary">{t.cta}</a>
+      <section style={{ background: 'var(--navy)', paddingBottom: 64 }}>
+        <div className="container" style={{ maxWidth: 760, paddingTop: 56 }}>
+          <div style={{ marginBottom: 28 }}>
+            <Seal size={56} />
+          </div>
+          <h1 style={{ fontSize: 46, lineHeight: 1.2, fontWeight: 700, color: '#fbf7ee', margin: '0 0 22px', letterSpacing: '-0.3px' }}>
+            {t.hero_title}
+          </h1>
+          <p style={{ fontSize: 17.5, lineHeight: 1.8, color: 'rgba(251,247,238,0.78)', margin: '0 0 34px', maxWidth: 620 }}>
+            {t.hero_sub}
+          </p>
+          <a href="#pricing" className="btn" style={{ background: 'var(--brass)', color: '#191510' }}>{t.cta}</a>
+        </div>
       </section>
 
-      <section className="container" style={{ padding: '40px 24px' }}>
-        <div className="card" style={{ borderInlineStart: `3px solid var(--danger)`, borderRadius: 8 }}>
-          <h2 style={{ fontSize: 20, fontWeight: 600, margin: '0 0 12px' }}>{t.problem_title}</h2>
+      <section className="container" style={{ padding: '48px 24px 0' }}>
+        <div className="card" style={{ borderInlineStart: `4px solid var(--danger)`, borderRadius: '0 4px 4px 0' }}>
+          <h2 style={{ fontSize: 21, fontWeight: 700, margin: '0 0 12px', color: 'var(--navy)' }}>{t.problem_title}</h2>
           <p style={{ fontSize: 15.5, lineHeight: 1.75, color: 'var(--muted)', margin: 0 }}>{t.problem_body}</p>
         </div>
       </section>
 
-      <section className="container" style={{ padding: '56px 24px' }}>
-        <h2 style={{ fontSize: 22, fontWeight: 600, margin: '0 0 28px', color: 'var(--teal-deep)' }}>{t.steps_title}</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
-          {[[t.step1_t, t.step1_d, '1'], [t.step2_t, t.step2_d, '2'], [t.step3_t, t.step3_d, '3']].map(([title, desc, n]) => (
-            <div key={n} className="card">
-              <div style={{ fontSize: 13, color: 'var(--amber)', fontWeight: 600, marginBottom: 10 }}>{n}</div>
-              <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>{title}</div>
+      <section className="container" style={{ padding: '60px 24px' }}>
+        <h2 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 30px', color: 'var(--navy)' }}>{t.steps_title}</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 20 }}>
+          {[[t.step1_t, t.step1_d], [t.step2_t, t.step2_d], [t.step3_t, t.step3_d]].map(([title, desc], i) => (
+            <div key={title} className="card" style={{ borderTop: `3px solid var(--brass)` }}>
+              <div style={{ fontSize: 13, color: 'var(--brass)', fontWeight: 700, marginBottom: 12, letterSpacing: '0.5px' }}>{String(i + 1).padStart(2, '0')}</div>
+              <div style={{ fontSize: 16.5, fontWeight: 700, marginBottom: 8, color: 'var(--navy)' }}>{title}</div>
               <div style={{ fontSize: 14.5, color: 'var(--muted)', lineHeight: 1.65 }}>{desc}</div>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="container" style={{ padding: '40px 24px' }}>
-        <h2 style={{ fontSize: 20, fontWeight: 600, margin: '0 0 12px' }}>{t.trust_title}</h2>
-        <p style={{ fontSize: 15.5, lineHeight: 1.75, color: 'var(--muted)' }}>{t.trust_body}</p>
-      </section>
-
-      <section id="pricing" className="container" style={{ padding: '40px 24px 80px' }}>
-        <div className="card" style={{ textAlign: 'center', maxWidth: 480, margin: '0 auto' }}>
-          <h2 style={{ fontSize: 20, fontWeight: 600, margin: '0 0 10px' }}>{t.pricing_title}</h2>
-          <p style={{ fontSize: 15, color: 'var(--muted)', margin: '0 0 24px' }}>{t.pricing_body}</p>
-          <span className="btn btn-primary" style={{ opacity: 0.6, cursor: 'not-allowed' }}>{t.pricing_cta}</span>
+      <section style={{ background: '#f1ebda', padding: '48px 0' }}>
+        <div className="container" style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
+          <Seal size={44} />
+          <div>
+            <h2 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 8px', color: 'var(--navy)' }}>{t.trust_title}</h2>
+            <p style={{ fontSize: 15, lineHeight: 1.7, color: 'var(--muted)', margin: 0, maxWidth: 560 }}>{t.trust_body}</p>
+          </div>
         </div>
       </section>
 
-      <footer style={{ borderTop: '1px solid var(--line)', padding: '28px 0' }}>
-        <div className="container" style={{ display: 'flex', gap: 24, fontSize: 13.5, color: 'var(--muted)', flexWrap: 'wrap' }}>
-          <span>{t.footer_about}</span>
-          <span>{t.footer_privacy}</span>
-          <span>{t.footer_terms}</span>
-          <span>{t.footer_contact}</span>
+      <section id="pricing" className="container" style={{ padding: '60px 24px 88px' }}>
+        <div className="card" style={{ textAlign: 'center', maxWidth: 480, margin: '0 auto', borderTop: `3px solid var(--navy)` }}>
+          <h2 style={{ fontSize: 21, fontWeight: 700, margin: '0 0 10px', color: 'var(--navy)' }}>{t.pricing_title}</h2>
+          <p style={{ fontSize: 15, color: 'var(--muted)', margin: '0 0 26px' }}>{t.pricing_body}</p>
+          <span className="btn btn-primary" style={{ opacity: 0.55, cursor: 'not-allowed' }}>{t.pricing_cta}</span>
+        </div>
+      </section>
+
+      <footer style={{ borderTop: `1px solid var(--line)`, padding: '32px 0', background: '#f1ebda' }}>
+        <div className="container">
+          <div style={{ fontSize: 13.5, color: 'var(--muted)', marginBottom: 16, fontWeight: 500 }}>{t.footer_tag}</div>
+          <div style={{ display: 'flex', gap: 24, fontSize: 13.5, color: 'var(--muted)', flexWrap: 'wrap' }}>
+            <span>{t.footer_about}</span>
+            <span>{t.footer_privacy}</span>
+            <span>{t.footer_terms}</span>
+            <span>{t.footer_contact}</span>
+          </div>
         </div>
       </footer>
     </main>
