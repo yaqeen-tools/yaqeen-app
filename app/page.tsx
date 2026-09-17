@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { COMPANY } from '../lib/companyInfo';
 
 const copy = {
   ar: {
@@ -156,7 +157,21 @@ export default function Home() {
 
       <footer style={{ borderTop: `1px solid var(--line)`, padding: '32px 0', background: '#f1ebda' }}>
         <div className="container">
-          <div style={{ fontSize: 13.5, color: 'var(--muted)', marginBottom: 16, fontWeight: 500 }}>{t.footer_tag}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+            <svg width="24" height="24" viewBox="0 0 80 80" aria-hidden="true">
+              <circle cx="40" cy="40" r="37" fill="none" stroke="var(--navy)" strokeWidth="3" />
+              <path d="M24 41 L35 52 L57 27" fill="none" stroke="var(--navy)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>{lang === 'ar' ? COMPANY.nameAr : COMPANY.nameEn}</span>
+          </div>
+          <div style={{ fontSize: 13.5, color: 'var(--muted)', marginBottom: 14, fontWeight: 500 }}>{t.footer_tag}</div>
+          <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 16, lineHeight: 1.8 }}>
+            {lang === 'ar' ? COMPANY.addressAr : COMPANY.addressEn}
+            {' · '}
+            {COMPANY.email}
+            {' · '}
+            {COMPANY.phone}
+          </div>
           <div style={{ display: 'flex', gap: 24, fontSize: 13.5, color: 'var(--muted)', flexWrap: 'wrap' }}>
             <span>{t.footer_about}</span>
             <span>{t.footer_privacy}</span>
