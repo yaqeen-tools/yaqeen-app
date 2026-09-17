@@ -1,0 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --ink: #14231f;
+  --paper: #f6f4ee;
+  --line: #d9d4c7;
+  --teal: #1f4d43;
+  --teal-deep: #10302a;
+  --amber: #b8802f;
+  --danger: #9a3324;
+  --muted: #5c6b64;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+body[data-lang="ar"] {
+  font-family: 'IBM Plex Sans Arabic', 'Inter', sans-serif;
+}
+body[data-lang="en"] {
+  font-family: 'Inter', 'IBM Plex Sans Arabic', sans-serif;
+}
+
+a { color: inherit; }
+
+.container {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 26px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn-primary { background: var(--teal); color: #f6f4ee; }
+.btn-primary:hover { background: var(--teal-deep); }
+.btn-ghost { background: transparent; color: var(--teal); border-color: var(--line); }
+.btn-ghost:hover { border-color: var(--teal); }
+
+.card {
+  background: #fffdf9;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 28px;
+}
+
+@media (max-width: 640px) {
+  .container { padding: 0 18px; }
+}
