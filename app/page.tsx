@@ -165,12 +165,11 @@ export default function Home() {
             <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>{lang === 'ar' ? COMPANY.nameAr : COMPANY.nameEn}</span>
           </div>
           <div style={{ fontSize: 13.5, color: 'var(--muted)', marginBottom: 14, fontWeight: 500 }}>{t.footer_tag}</div>
-          <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 16, lineHeight: 1.8 }}>
-            {lang === 'ar' ? COMPANY.addressAr : COMPANY.addressEn}
-            {' · '}
-            {COMPANY.email}
-            {' · '}
-            {COMPANY.phone}
+          <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 16, lineHeight: 2 }}>
+            <div>{lang === 'ar' ? COMPANY.nameFullAr : COMPANY.nameFullEn}</div>
+            <div>{COMPANY.email}</div>
+            <div>{COMPANY.phone}</div>
+            <div>{lang === 'ar' ? COMPANY.addressAr : COMPANY.addressEn}</div>
           </div>
           <div style={{ display: 'flex', gap: 24, fontSize: 13.5, color: 'var(--muted)', flexWrap: 'wrap' }}>
             <span>{t.footer_about}</span>
