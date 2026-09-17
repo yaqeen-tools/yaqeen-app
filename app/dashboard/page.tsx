@@ -179,8 +179,11 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <div style={{ marginTop: 48, paddingTop: 20, borderTop: '1px solid var(--line)', fontSize: 12.5, color: 'var(--muted)' }}>
-          {COMPANY.nameFullAr} · {COMPANY.addressAr} · {COMPANY.email} · {COMPANY.phone}
+        <div style={{ marginTop: 48, paddingTop: 20, borderTop: '1px solid var(--line)', fontSize: 12.5, color: 'var(--muted)', lineHeight: 2 }}>
+          <div>{COMPANY.nameFullAr}</div>
+          <div>{COMPANY.email}</div>
+          <div>{COMPANY.phone}</div>
+          <div>{COMPANY.addressAr}</div>
         </div>
       </div>
     </main>
