@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { ShieldMark, Wordmark } from '../../components/Logo';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -40,12 +41,9 @@ export default function LoginPage() {
   return (
     <main dir="rtl" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--paper)' }}>
       <div className="card" style={{ maxWidth: 400, width: '100%', margin: 20, borderTop: '3px solid var(--navy)' }}>
-        <div style={{ marginBottom: 20 }}>
-          <svg width="40" height="40" viewBox="0 0 80 80" aria-hidden="true">
-            <circle cx="40" cy="40" r="37" fill="none" stroke="var(--navy)" strokeWidth="3" />
-            <circle cx="40" cy="40" r="30" fill="none" stroke="var(--brass)" strokeWidth="1.5" />
-            <path d="M24 41 L35 52 L57 27" fill="none" stroke="var(--navy)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+        <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', gap: 14 }}>
+          <ShieldMark size={56} />
+          <Wordmark />
         </div>
 
         {step === 'email' ? (
