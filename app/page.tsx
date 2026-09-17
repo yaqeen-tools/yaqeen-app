@@ -22,9 +22,19 @@ const copy = {
     step3_d: 'كل ملاحظة مربوطة بالبند نفسه، مع درجة خطورتها',
     trust_title: 'مبني للسوق الخليجي تحديدًا',
     trust_body: 'ثنائي اللغة بالكامل، ومصمم لسياق العقود التجارية المحلية — مو ترجمة لأداة أمريكية.',
-    pricing_title: 'اشتراك بسيط، بدون التزام طويل',
-    pricing_body: 'خطة شهرية لمراجعة عدد من العقود، تقدر تلغيها بأي وقت.',
-    pricing_cta: 'شوف الأسعار',
+    pricing_title: 'اختر الباقة المناسبة',
+    pricing_body: 'اشتراك شهري، تقدر تلغيه بأي وقت — كل باقة عدد معين من تحليلات العقود شهريًا.',
+    plan_basic_name: 'الأساسية',
+    plan_basic_price: '49 درهم',
+    plan_basic_limit: '10 تحليلات عقود شهريًا',
+    plan_pro_name: 'الاحترافية',
+    plan_pro_price: '129 درهم',
+    plan_pro_limit: '30 تحليل عقد شهريًا',
+    plan_business_name: 'الأعمال',
+    plan_business_price: '349 درهم',
+    plan_business_limit: '100 تحليل عقد شهريًا',
+    plan_per_month: '/ شهريًا',
+    pricing_cta: 'قريبًا',
     footer_about: 'من نحن',
     footer_privacy: 'الخصوصية',
     footer_terms: 'الشروط',
@@ -48,9 +58,19 @@ const copy = {
     step3_d: 'Every finding is tied to the exact clause, with a risk level',
     trust_title: 'Built for the Gulf market specifically',
     trust_body: 'Fully bilingual, and designed for local commercial contract conventions — not a translated US tool.',
-    pricing_title: 'Simple subscription, no long commitment',
-    pricing_body: 'A monthly plan covering a set number of contracts. Cancel anytime.',
-    pricing_cta: 'See pricing',
+    pricing_title: 'Choose your plan',
+    pricing_body: 'Monthly subscription, cancel anytime — each plan includes a set number of contract analyses per month.',
+    plan_basic_name: 'Basic',
+    plan_basic_price: 'AED 49',
+    plan_basic_limit: '10 contract analyses / month',
+    plan_pro_name: 'Pro',
+    plan_pro_price: 'AED 129',
+    plan_pro_limit: '30 contract analyses / month',
+    plan_business_name: 'Business',
+    plan_business_price: 'AED 349',
+    plan_business_limit: '100 contract analyses / month',
+    plan_per_month: '/ month',
+    pricing_cta: 'Coming soon',
     footer_about: 'About',
     footer_privacy: 'Privacy',
     footer_terms: 'Terms',
@@ -133,10 +153,38 @@ export default function Home() {
       </section>
 
       <section id="pricing" className="container" style={{ padding: '60px 24px 88px' }}>
-        <div className="card" style={{ textAlign: 'center', maxWidth: 480, margin: '0 auto', borderTop: `3px solid var(--navy)` }}>
-          <h2 style={{ fontSize: 21, fontWeight: 700, margin: '0 0 10px', color: 'var(--navy)' }}>{t.pricing_title}</h2>
-          <p style={{ fontSize: 15, color: 'var(--muted)', margin: '0 0 26px' }}>{t.pricing_body}</p>
-          <span className="btn btn-primary" style={{ opacity: 0.55, cursor: 'not-allowed' }}>{t.pricing_cta}</span>
+        <h2 style={{ fontSize: 22, fontWeight: 700, margin: '0 0 8px', color: 'var(--navy)', textAlign: 'center' }}>{t.pricing_title}</h2>
+        <p style={{ fontSize: 15, color: 'var(--muted)', margin: '0 0 32px', textAlign: 'center' }}>{t.pricing_body}</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20, maxWidth: 820, margin: '0 auto' }}>
+          {[
+            [t.plan_basic_name, t.plan_basic_price, t.plan_basic_limit, false],
+            [t.plan_pro_name, t.plan_pro_price, t.plan_pro_limit, true],
+            [t.plan_business_name, t.plan_business_price, t.plan_business_limit, false],
+          ].map(([name, price, limit, featured]) => (
+            <div
+              key={name as string}
+              className="card"
+              style={{
+                textAlign: 'center',
+                borderTop: featured ? '3px solid var(--brass)' : '3px solid var(--navy)',
+                position: 'relative',
+              }}
+            >
+              {featured && (
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--brass)', marginBottom: 8, letterSpacing: '0.5px' }}>
+                  {lang === 'ar' ? 'الأكثر شيوعًا' : 'MOST POPULAR'}
+                </div>
+              )}
+              <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--navy)', marginBottom: 6 }}>{name}</div>
+              <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--navy)', marginBottom: 4 }}>
+                {price} <span style={{ fontSize: 13, fontWeight: 400, color: 'var(--muted)' }}>{t.plan_per_month}</span>
+              </div>
+              <div style={{ fontSize: 13.5, color: 'var(--muted)', marginBottom: 20 }}>{limit}</div>
+              <span className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', opacity: 0.55, cursor: 'not-allowed' }}>
+                {t.pricing_cta}
+              </span>
+            </div>
+          ))}
         </div>
       </section>
 
