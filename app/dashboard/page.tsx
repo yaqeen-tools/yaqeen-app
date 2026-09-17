@@ -9,15 +9,19 @@ type Contract = {
   language: string;
   status: string;
   created_at: string;
+  file_path: string | null;
 };
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [orgId, setOrgId] = useState<string | null>(null);
   const [orgName, setOrgName] = useState<string | null>(null);
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [title, setTitle] = useState('');
+  const [file, setFile] = useState<File | null>(null);
   const [adding, setAdding] = useState(false);
+  const [addError, setAddError] = useState('');
 
   async function loadData() {
     const { data: { user } } = await supabase.auth.getUser();
@@ -33,11 +37,12 @@ export default function DashboardPage() {
       .limit(1);
 
     const org = memberships?.[0] as any;
+    if (org?.organization_id) setOrgId(org.organization_id);
     if (org?.organizations?.name) setOrgName(org.organizations.name);
 
     const { data: contractsData } = await supabase
       .from('contracts')
-      .select('id, title, language, status, created_at')
+      .select('id, title, language, status, created_at, file_path')
       .order('created_at', { ascending: false });
 
     setContracts(contractsData ?? []);
@@ -50,25 +55,37 @@ export default function DashboardPage() {
 
   async function handleAddContract(e: React.FormEvent) {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!title.trim() || !orgId) return;
     setAdding(true);
+    setAddError('');
 
     const { data: { user } } = await supabase.auth.getUser();
-    const { data: memberships } = await supabase.from('memberships').select('organization_id').limit(1);
-    const orgId = memberships?.[0]?.organization_id;
+    if (!user) return;
 
-    if (orgId && user) {
-      await supabase.from('contracts').insert({
-        organization_id: orgId,
-        uploaded_by: user.id,
-        title,
-        language: 'ar',
-        status: 'processing',
-      });
-      setTitle('');
-      await loadData();
+    const { data: inserted, error: insertError } = await supabase
+      .from('contracts')
+      .insert({ organization_id: orgId, uploaded_by: user.id, title, language: 'ar', status: 'processing' })
+      .select('id')
+      .single();
+
+    if (insertError || !inserted) {
+      setAddError('صار خطأ، حاول مرة ثانية');
+      setAdding(false);
+      return;
     }
+
+    if (file) {
+      const path = `${orgId}/${inserted.id}/${file.name}`;
+      const { error: uploadError } = await supabase.storage.from('contracts').upload(path, file);
+      if (!uploadError) {
+        await supabase.from('contracts').update({ file_path: path }).eq('id', inserted.id);
+      }
+    }
+
+    setTitle('');
+    setFile(null);
     setAdding(false);
+    await loadData();
   }
 
   async function handleLogout() {
@@ -109,17 +126,24 @@ export default function DashboardPage() {
 
         <div className="card" style={{ marginBottom: 30, borderTop: '3px solid var(--brass)' }}>
           <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--navy)', margin: '0 0 14px' }}>إضافة عقد جديد</h2>
-          <form onSubmit={handleAddContract} style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <form onSubmit={handleAddContract} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="اسم العقد (مثال: عقد إيجار محل - 2026)"
-              style={{ flex: 1, minWidth: 220, padding: '12px 14px', fontSize: 14.5, border: '1px solid var(--line)', borderRadius: 4, fontFamily: 'inherit' }}
+              style={{ padding: '12px 14px', fontSize: 14.5, border: '1px solid var(--line)', borderRadius: 4, fontFamily: 'inherit' }}
             />
-            <button type="submit" disabled={adding} className="btn btn-primary">
+            <input
+              type="file"
+              accept=".pdf,.png,.jpg,.jpeg"
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              style={{ fontSize: 13.5, color: 'var(--muted)' }}
+            />
+            <button type="submit" disabled={adding} className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>
               {adding ? 'جاري الإضافة...' : 'إضافة'}
             </button>
+            {addError && <div style={{ color: 'var(--danger)', fontSize: 13.5 }}>{addError}</div>}
           </form>
         </div>
 
@@ -134,6 +158,7 @@ export default function DashboardPage() {
                   <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--navy)' }}>{c.title}</div>
                   <div style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: 4 }}>
                     {new Date(c.created_at).toLocaleDateString('ar-AE')}
+                    {c.file_path ? ' · ملف مرفق' : ' · بدون ملف'}
                   </div>
                 </div>
                 <span
