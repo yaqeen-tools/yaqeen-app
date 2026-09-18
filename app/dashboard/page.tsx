@@ -62,6 +62,7 @@ const copy = {
     disclaimer: 'تنويه: هذا تحليل استرشادي أولي بالذكاء الاصطناعي، ولا يغني عن مراجعة محامٍ مرخّص قبل اتخاذ أي قرار.',
     noFindings: 'ما فيه ملاحظات.',
     exportWord: 'تصدير Word',
+    deleteContract: 'حذف',
     clauseLabel: 'البند',
     legalLabel: 'المصدر القانوني',
     severity: { high: 'خطورة عالية', medium: 'خطورة متوسطة', low: 'خطورة منخفضة', info: 'ملاحظة' } as Record<string, string>,
@@ -105,6 +106,7 @@ const copy = {
     disclaimer: 'Note: this is a preliminary AI-guided analysis and does not replace review by a licensed lawyer before any decision.',
     noFindings: 'No findings.',
     exportWord: 'Export Word',
+    deleteContract: 'Delete',
     clauseLabel: 'Clause',
     legalLabel: 'Legal reference',
     severity: { high: 'High risk', medium: 'Medium risk', low: 'Low risk', info: 'Note' } as Record<string, string>,
@@ -322,6 +324,24 @@ export default function DashboardPage() {
     }
   }
 
+  async function handleDelete(contract: Contract) {
+    const confirmMsg = lang === 'ar' ? `متأكد تبي تحذف "${contract.title}"؟` : `Delete "${contract.title}"?`;
+    if (!window.confirm(confirmMsg)) return;
+
+    if (contract.file_path) {
+      await supabase.storage.from('contracts').remove([contract.file_path]);
+    }
+    await supabase.from('contracts').delete().eq('id', contract.id);
+
+    setFindingsMap((prev) => {
+      const next = { ...prev };
+      delete next[contract.id];
+      return next;
+    });
+    if (expandedId === contract.id) setExpandedId(null);
+    await loadData();
+  }
+
   async function handleLogout() {
     await supabase.auth.signOut();
     window.location.href = '/login';
@@ -460,6 +480,13 @@ export default function DashboardPage() {
                         {analyzingId === c.id ? t.analyzing : c.status === 'failed' ? t.retry : t.analyze}
                       </button>
                     )}
+                    <button
+                      onClick={() => handleDelete(c)}
+                      className="btn btn-ghost"
+                      style={{ padding: '6px 10px', fontSize: 13, color: 'var(--danger)', borderColor: 'var(--danger)' }}
+                    >
+                      {t.deleteContract}
+                    </button>
                   </div>
                 </div>
 
