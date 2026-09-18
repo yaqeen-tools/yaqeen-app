@@ -61,6 +61,7 @@ const copy = {
     connectionError: 'تعذر الوصول لخدمة التحليل',
     disclaimer: 'تنويه: هذا تحليل استرشادي أولي بالذكاء الاصطناعي، ولا يغني عن مراجعة محامٍ مرخّص قبل اتخاذ أي قرار.',
     noFindings: 'ما فيه ملاحظات.',
+    exportWord: 'تصدير Word',
     clauseLabel: 'البند',
     legalLabel: 'المصدر القانوني',
     severity: { high: 'خطورة عالية', medium: 'خطورة متوسطة', low: 'خطورة منخفضة', info: 'ملاحظة' } as Record<string, string>,
@@ -103,6 +104,7 @@ const copy = {
     connectionError: 'Could not reach the analysis service',
     disclaimer: 'Note: this is a preliminary AI-guided analysis and does not replace review by a licensed lawyer before any decision.',
     noFindings: 'No findings.',
+    exportWord: 'Export Word',
     clauseLabel: 'Clause',
     legalLabel: 'Legal reference',
     severity: { high: 'High risk', medium: 'Medium risk', low: 'Low risk', info: 'Note' } as Record<string, string>,
@@ -192,16 +194,19 @@ export default function DashboardPage() {
 
   async function handleAddContract(e: React.FormEvent) {
     e.preventDefault();
-    if (!title.trim() || !orgId) return;
+    if (!title.trim() && !rawText.trim() && !file) return;
+    if (!orgId) return;
     setAdding(true);
     setAddError('');
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    const finalTitle = title.trim() || file?.name.replace(/\.[^.]+$/, '') || (lang === 'ar' ? 'عقد بدون اسم' : 'Untitled contract');
+
     const { data: inserted, error: insertError } = await supabase
       .from('contracts')
-      .insert({ organization_id: orgId, uploaded_by: user.id, title, language: lang, status: 'processing', raw_text: rawText || null })
+      .insert({ organization_id: orgId, uploaded_by: user.id, title: finalTitle, language: lang, status: 'processing', raw_text: rawText || null })
       .select('id')
       .single();
 
@@ -224,6 +229,47 @@ export default function DashboardPage() {
     setFile(null);
     setAdding(false);
     await loadData();
+  }
+
+  function handleExportWord(contract: Contract, findings: Finding[]) {
+    const rows = findings
+      .map(
+        (f) => `
+      <tr>
+        <td style="padding:8px;border:1px solid #ccc;font-weight:bold;">${t.severity[f.severity] ?? f.severity}</td>
+        <td style="padding:8px;border:1px solid #ccc;">
+          <div style="font-weight:bold;margin-bottom:4px;">${f.title}</div>
+          <div style="margin-bottom:6px;">${f.description}</div>
+          ${f.clause_reference ? `<div style="font-size:12px;color:#555;">${t.clauseLabel}: ${f.clause_reference}</div>` : ''}
+          ${f.legal_reference ? `<div style="font-size:12px;color:#a6752c;">${t.legalLabel}: ${f.legal_reference}</div>` : ''}
+        </td>
+      </tr>`
+      )
+      .join('');
+
+    const html = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+      <head><meta charset="utf-8"><title>${contract.title}</title></head>
+      <body dir="${t.dir}" style="font-family:Arial, sans-serif;">
+        <h1 style="color:#16283d;">يقين — Yaqeen</h1>
+        <div style="font-size:11px;color:#a6752c;letter-spacing:1px;margin-bottom:20px;">YAQEEN DIGITAL SOLUTIONS</div>
+        <h2 style="color:#16283d;">${contract.title}</h2>
+        <p style="color:#555;font-size:13px;">${new Date(contract.created_at).toLocaleDateString(t.locale)}</p>
+        <p style="font-size:12px;color:#777;background:#f1ebda;padding:10px;">${t.disclaimer}</p>
+        <table style="border-collapse:collapse;width:100%;margin-top:16px;">
+          ${rows}
+        </table>
+        <p style="margin-top:24px;font-size:11px;color:#999;">${COMPANY.email} · ${COMPANY.phone}</p>
+      </body>
+      </html>`;
+
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${contract.title}.doc`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   async function handleAnalyze(contractId: string) {
@@ -346,7 +392,7 @@ export default function DashboardPage() {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder={t.titlePlaceholder}
+              placeholder={t.titlePlaceholder + (lang === 'ar' ? ' (اختياري)' : ' (optional)')}
               style={{ padding: '12px 14px', fontSize: 14.5, border: '1px solid var(--line)', borderRadius: 4, fontFamily: 'inherit' }}
             />
             <textarea
@@ -423,7 +469,18 @@ export default function DashboardPage() {
 
                 {expandedId === c.id && (
                   <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--line)' }}>
-                    <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 12, lineHeight: 1.7 }}>{t.disclaimer}</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
+                      <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.7 }}>{t.disclaimer}</div>
+                      {(findingsMap[c.id] ?? []).length > 0 && (
+                        <button
+                          onClick={() => handleExportWord(c, findingsMap[c.id])}
+                          className="btn btn-ghost"
+                          style={{ padding: '6px 12px', fontSize: 12.5, whiteSpace: 'nowrap' }}
+                        >
+                          {t.exportWord}
+                        </button>
+                      )}
+                    </div>
                     {(findingsMap[c.id] ?? []).length === 0 ? (
                       <div style={{ fontSize: 13.5, color: 'var(--muted)' }}>{t.noFindings}</div>
                     ) : (
