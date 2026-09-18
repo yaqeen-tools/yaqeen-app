@@ -364,6 +364,9 @@ export default function DashboardPage() {
             <Wordmark light />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <a href="/wasel" className="btn" style={{ padding: '8px 16px', fontSize: 13.5, background: 'transparent', color: '#fbf7ee', border: '1px solid rgba(251,247,238,0.35)' }}>
+              واصل
+            </a>
             <button
               onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}
               style={{ padding: '8px 14px', fontSize: 13, background: 'transparent', color: '#fbf7ee', border: '1px solid rgba(251,247,238,0.35)', borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit' }}
