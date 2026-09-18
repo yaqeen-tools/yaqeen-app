@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { ShieldMark, Wordmark } from '../../components/Logo';
 
+const FUNCTIONS_URL = 'https://qtixhhztkuyqgsflhmkt.supabase.co/functions/v1';
+
 const copy = {
   ar: {
     dir: 'rtl',
@@ -48,13 +50,23 @@ export default function LoginPage() {
     e.preventDefault();
     setStatus('busy');
     setErrorMsg('');
-    const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
-    if (error) {
+    try {
+      const res = await fetch(`${FUNCTIONS_URL}/send-login-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        setStatus('error');
+        setErrorMsg(result.error || 'صار خطأ، حاول مرة ثانية');
+      } else {
+        setStatus('idle');
+        setStep('code');
+      }
+    } catch {
       setStatus('error');
-      setErrorMsg(error.message);
-    } else {
-      setStatus('idle');
-      setStep('code');
+      setErrorMsg('تعذر الاتصال بالخادم');
     }
   }
 
@@ -62,12 +74,34 @@ export default function LoginPage() {
     e.preventDefault();
     setStatus('busy');
     setErrorMsg('');
-    const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' });
-    if (error) {
-      setStatus('error');
-      setErrorMsg(error.message);
-    } else {
+    try {
+      const res = await fetch(`${FUNCTIONS_URL}/verify-login-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code }),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        setStatus('error');
+        setErrorMsg(result.error || 'صار خطأ، حاول مرة ثانية');
+        return;
+      }
+
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        token_hash: result.token_hash,
+        type: 'magiclink',
+      });
+
+      if (verifyError) {
+        setStatus('error');
+        setErrorMsg(verifyError.message);
+        return;
+      }
+
       window.location.href = '/dashboard';
+    } catch {
+      setStatus('error');
+      setErrorMsg('تعذر الاتصال بالخادم');
     }
   }
 
