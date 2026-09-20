@@ -118,7 +118,7 @@ export default function Home() {
           <p style={{ fontSize: 17.5, lineHeight: 1.8, color: 'rgba(251,247,238,0.78)', margin: '0 0 34px', maxWidth: 620 }}>
             {t.hero_sub}
           </p>
-          <a href="/login" className="btn" style={{ background: 'var(--brass)', color: '#191510' }}>{t.cta}</a>
+          <a href="/dashboard" className="btn" style={{ background: 'var(--brass)', color: '#191510' }}>{t.cta}</a>
         </div>
       </section>
 
