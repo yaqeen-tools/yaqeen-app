@@ -146,14 +146,29 @@ export default function DashboardPage() {
   const [passwordStatus, setPasswordStatus] = useState<'idle' | 'busy' | 'error' | 'success'>('idle');
   const [passwordError, setPasswordError] = useState('');
   const [findingsMap, setFindingsMap] = useState<Record<string, Finding[]>>({});
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [anonError, setAnonError] = useState(false);
+  const [secureEmail, setSecureEmail] = useState('');
+  const [securePassword, setSecurePassword] = useState('');
+  const [secureStatus, setSecureStatus] = useState<'idle' | 'busy' | 'error' | 'success'>('idle');
+  const [secureError, setSecureError] = useState('');
 
   async function loadData() {
-    const { data: { session } } = await supabase.auth.getSession();
-    const user = session?.user;
+    let { data: { session } } = await supabase.auth.getSession();
+    let user = session?.user;
+
     if (!user) {
-      window.location.href = '/login';
-      return;
+      const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously();
+      if (anonError || !anonData.session) {
+        setLoading(false);
+        setAnonError(true);
+        return;
+      }
+      user = anonData.user ?? undefined;
     }
+    if (!user) return;
+
+    setIsAnonymous(!!user.is_anonymous);
     setUserEmail(user.email ?? null);
 
     const { data: memberships } = await supabase
@@ -346,6 +361,33 @@ export default function DashboardPage() {
     await loadData();
   }
 
+  async function handleSecureAccount(e: React.FormEvent) {
+    e.preventDefault();
+    setSecureStatus('busy');
+    setSecureError('');
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    try {
+      const res = await fetch('https://qtixhhztkuyqgsflhmkt.supabase.co/functions/v1/secure-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ email: secureEmail, password: securePassword }),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        setSecureStatus('error');
+        setSecureError(result.error || (lang === 'ar' ? 'صار خطأ' : 'Something went wrong'));
+        return;
+      }
+      setSecureStatus('success');
+      setIsAnonymous(false);
+      setUserEmail(secureEmail);
+    } catch {
+      setSecureStatus('error');
+      setSecureError(lang === 'ar' ? 'تعذر الاتصال بالخادم' : 'Could not reach the server');
+    }
+  }
+
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault();
     setPasswordStatus('busy');
@@ -366,14 +408,33 @@ export default function DashboardPage() {
   }
 
   async function handleLogout() {
+    if (isAnonymous) {
+      const msg = lang === 'ar'
+        ? 'حسابك غير مؤمّن — لو خرجت الآن بدون ما تضيف إيميل وكلمة مرور، ما راح تقدر ترجع لنفس بياناتك. تبي تخرج فعلاً؟'
+        : "Your account isn't secured — if you sign out now without adding an email and password, you won't be able to get back to this data. Sign out anyway?";
+      if (!window.confirm(msg)) return;
+    }
     await supabase.auth.signOut();
-    window.location.href = '/login';
+    window.location.href = '/';
   }
 
   if (loading) {
     return (
       <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--paper)' }}>
         <div style={{ color: 'var(--muted)' }}>{t.loading}</div>
+      </main>
+    );
+  }
+
+  if (anonError) {
+    return (
+      <main dir={t.dir} style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--paper)' }}>
+        <div className="card" style={{ maxWidth: 420, margin: 20, textAlign: 'center' }}>
+          <div style={{ color: 'var(--danger)', fontSize: 14.5, marginBottom: 14 }}>
+            {lang === 'ar' ? 'تعذر بدء جلسة مؤقتة. جرّب تحديث الصفحة.' : 'Could not start a guest session. Try refreshing the page.'}
+          </div>
+          <a href="/login" className="btn btn-primary">{lang === 'ar' ? 'أو سجّل دخول بحساب' : 'Or sign in with an account'}</a>
+        </div>
       </main>
     );
   }
@@ -394,7 +455,7 @@ export default function DashboardPage() {
               onClick={() => setShowPasswordChange((v) => !v)}
               style={{ padding: '8px 14px', fontSize: 13, background: 'transparent', color: '#fbf7ee', border: '1px solid rgba(251,247,238,0.35)', borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit' }}
             >
-              {lang === 'ar' ? 'كلمة المرور' : 'Password'}
+              {isAnonymous ? (lang === 'ar' ? 'تأمين الحساب' : 'Secure account') : (lang === 'ar' ? 'كلمة المرور' : 'Password')}
             </button>
             <button
               onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}
@@ -411,37 +472,83 @@ export default function DashboardPage() {
 
       <div className="container" style={{ padding: '40px 24px' }}>
         <div style={{ marginBottom: 30 }}>
-          <div style={{ fontSize: 13.5, color: 'var(--muted)' }}>{userEmail}</div>
+          <div style={{ fontSize: 13.5, color: 'var(--muted)' }}>{userEmail || (lang === 'ar' ? 'حساب زائر' : 'Guest account')}</div>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--navy)', margin: '4px 0 0' }}>{orgName ?? t.defaultOrg}</h1>
         </div>
 
         {showPasswordChange && (
           <div className="card" style={{ marginBottom: 30, borderTop: '3px solid var(--navy)' }}>
-            <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)', margin: '0 0 14px' }}>
-              {lang === 'ar' ? 'تغيير كلمة المرور' : 'Change password'}
-            </h2>
-            {passwordStatus === 'success' ? (
-              <div style={{ fontSize: 13.5, color: 'var(--navy)', background: '#e7f0ea', padding: 12, borderRadius: 4 }}>
-                {lang === 'ar' ? 'تم تغيير كلمة المرور بنجاح.' : 'Password changed successfully.'}
-              </div>
+            {isAnonymous ? (
+              <>
+                <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)', margin: '0 0 6px' }}>
+                  {lang === 'ar' ? 'تأمين حسابك (اختياري)' : 'Secure your account (optional)'}
+                </h2>
+                <p style={{ fontSize: 12.5, color: 'var(--muted)', margin: '0 0 14px', lineHeight: 1.7 }}>
+                  {lang === 'ar'
+                    ? 'حسابك يشتغل الآن بدون أي تسجيل. لو تبي تحفظ وصولك (تدخل من جهاز ثاني، أو ما تفقد بياناتك لو مسحت المتصفح)، أضف إيميل وكلمة مرور — اختياري بالكامل.'
+                    : 'Your account works right now with no sign-in. If you want to keep access from another device or avoid losing data if you clear your browser, add an email and password — entirely optional.'}
+                </p>
+                {secureStatus === 'success' ? (
+                  <div style={{ fontSize: 13.5, color: 'var(--navy)', background: '#e7f0ea', padding: 12, borderRadius: 4 }}>
+                    {lang === 'ar' ? 'تم تأمين حسابك — تقدر تسجل دخول بهذا الإيميل وكلمة المرور لاحقًا.' : 'Account secured — you can sign in with this email and password later.'}
+                  </div>
+                ) : (
+                  <form onSubmit={handleSecureAccount} style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                    <input
+                      type="email"
+                      required
+                      value={secureEmail}
+                      onChange={(e) => setSecureEmail(e.target.value)}
+                      placeholder={lang === 'ar' ? 'إيميلك' : 'Your email'}
+                      dir="ltr"
+                      style={{ flex: 1, minWidth: 200, padding: '10px 12px', fontSize: 14, border: '1px solid var(--line)', borderRadius: 4, fontFamily: 'inherit' }}
+                    />
+                    <input
+                      type="password"
+                      required
+                      minLength={8}
+                      value={securePassword}
+                      onChange={(e) => setSecurePassword(e.target.value)}
+                      placeholder={lang === 'ar' ? 'كلمة مرور (8 أحرف+)' : 'Password (8+ chars)'}
+                      dir="ltr"
+                      style={{ flex: 1, minWidth: 180, padding: '10px 12px', fontSize: 14, border: '1px solid var(--line)', borderRadius: 4, fontFamily: 'inherit' }}
+                    />
+                    <button type="submit" disabled={secureStatus === 'busy'} className="btn btn-primary">
+                      {secureStatus === 'busy' ? '...' : (lang === 'ar' ? 'تأمين' : 'Secure')}
+                    </button>
+                  </form>
+                )}
+                {secureStatus === 'error' && <div style={{ color: 'var(--danger)', fontSize: 13, marginTop: 8 }}>{secureError}</div>}
+              </>
             ) : (
-              <form onSubmit={handleChangePassword} style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-                <input
-                  type="password"
-                  required
-                  minLength={8}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder={lang === 'ar' ? 'كلمة المرور الجديدة (8 أحرف على الأقل)' : 'New password (8+ characters)'}
-                  dir="ltr"
-                  style={{ flex: 1, minWidth: 220, padding: '10px 12px', fontSize: 14, border: '1px solid var(--line)', borderRadius: 4, fontFamily: 'inherit' }}
-                />
-                <button type="submit" disabled={passwordStatus === 'busy'} className="btn btn-primary">
-                  {passwordStatus === 'busy' ? '...' : (lang === 'ar' ? 'حفظ' : 'Save')}
-                </button>
-              </form>
+              <>
+                <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)', margin: '0 0 14px' }}>
+                  {lang === 'ar' ? 'تغيير كلمة المرور' : 'Change password'}
+                </h2>
+                {passwordStatus === 'success' ? (
+                  <div style={{ fontSize: 13.5, color: 'var(--navy)', background: '#e7f0ea', padding: 12, borderRadius: 4 }}>
+                    {lang === 'ar' ? 'تم تغيير كلمة المرور بنجاح.' : 'Password changed successfully.'}
+                  </div>
+                ) : (
+                  <form onSubmit={handleChangePassword} style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <input
+                      type="password"
+                      required
+                      minLength={8}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder={lang === 'ar' ? 'كلمة المرور الجديدة (8 أحرف على الأقل)' : 'New password (8+ characters)'}
+                      dir="ltr"
+                      style={{ flex: 1, minWidth: 220, padding: '10px 12px', fontSize: 14, border: '1px solid var(--line)', borderRadius: 4, fontFamily: 'inherit' }}
+                    />
+                    <button type="submit" disabled={passwordStatus === 'busy'} className="btn btn-primary">
+                      {passwordStatus === 'busy' ? '...' : (lang === 'ar' ? 'حفظ' : 'Save')}
+                    </button>
+                  </form>
+                )}
+                {passwordStatus === 'error' && <div style={{ color: 'var(--danger)', fontSize: 13, marginTop: 8 }}>{passwordError}</div>}
+              </>
             )}
-            {passwordStatus === 'error' && <div style={{ color: 'var(--danger)', fontSize: 13, marginTop: 8 }}>{passwordError}</div>}
           </div>
         )}
 
