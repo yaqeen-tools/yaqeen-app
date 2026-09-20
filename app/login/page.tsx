@@ -10,75 +10,62 @@ const copy = {
   ar: {
     dir: 'rtl',
     toggle: 'English',
-    title1: 'تسجيل الدخول',
-    sub1: 'أدخل إيميلك وراح نرسل لك رمز دخول مكوّن من 6 أرقام.',
-    placeholder: 'you@company.com',
-    send: 'أرسل رمز الدخول',
-    sending: 'جاري الإرسال...',
-    title2: 'أدخل الرمز',
-    sub2: (email: string) => `أرسلنا رمز مكوّن من 6 أرقام إلى ${email} — تفقّد بريدك (وصندوق الرسائل غير المرغوبة).`,
-    verify: 'تأكيد الدخول',
-    verifying: 'جاري التحقق...',
-    changeEmail: 'تغيير الإيميل',
+    tabLogin: 'تسجيل الدخول',
+    tabSignup: 'حساب جديد',
+    emailPlaceholder: 'you@company.com',
+    passwordPlaceholder: 'كلمة المرور',
+    loginBtn: 'دخول',
+    signupBtn: 'إنشاء الحساب',
+    loading: 'جاري المعالجة...',
+    passwordHint: '8 أحرف على الأقل',
+    signupSuccess: 'تم إنشاء حسابك! جرّب تسجيل الدخول الآن.',
   },
   en: {
     dir: 'ltr',
     toggle: 'العربية',
-    title1: 'Sign in',
-    sub1: "Enter your email and we'll send you a 6-digit sign-in code.",
-    placeholder: 'you@company.com',
-    send: 'Send sign-in code',
-    sending: 'Sending...',
-    title2: 'Enter the code',
-    sub2: (email: string) => `We sent a 6-digit code to ${email} — check your inbox (and spam folder).`,
-    verify: 'Confirm sign-in',
-    verifying: 'Verifying...',
-    changeEmail: 'Change email',
+    tabLogin: 'Sign in',
+    tabSignup: 'Create account',
+    emailPlaceholder: 'you@company.com',
+    passwordPlaceholder: 'Password',
+    loginBtn: 'Sign in',
+    signupBtn: 'Create account',
+    loading: 'Processing...',
+    passwordHint: 'At least 8 characters',
+    signupSuccess: 'Account created! Try signing in now.',
   },
 } as const;
 
 export default function LoginPage() {
   const [lang, setLang] = useState<'ar' | 'en'>('ar');
   const t = copy[lang];
+  const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
-  const [step, setStep] = useState<'email' | 'code'>('email');
-  const [status, setStatus] = useState<'idle' | 'busy' | 'error'>('idle');
+  const [password, setPassword] = useState('');
+  const [status, setStatus] = useState<'idle' | 'busy' | 'error' | 'success'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
-  async function handleSendCode(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setStatus('busy');
     setErrorMsg('');
-    try {
-      const res = await fetch(`${FUNCTIONS_URL}/send-login-code`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-      const result = await res.json();
-      if (!res.ok) {
-        setStatus('error');
-        setErrorMsg(result.error || 'صار خطأ، حاول مرة ثانية');
-      } else {
-        setStatus('idle');
-        setStep('code');
-      }
-    } catch {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
       setStatus('error');
-      setErrorMsg('تعذر الاتصال بالخادم');
+      setErrorMsg(lang === 'ar' ? 'إيميل أو كلمة مرور غير صحيحة' : 'Invalid email or password');
+      return;
     }
+    window.location.href = '/dashboard';
   }
 
-  async function handleVerifyCode(e: React.FormEvent) {
+  async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
     setStatus('busy');
     setErrorMsg('');
     try {
-      const res = await fetch(`${FUNCTIONS_URL}/verify-login-code`, {
+      const res = await fetch(`${FUNCTIONS_URL}/signup-with-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code }),
+        body: JSON.stringify({ email, password }),
       });
       const result = await res.json();
       if (!res.ok) {
@@ -86,19 +73,8 @@ export default function LoginPage() {
         setErrorMsg(result.error || 'صار خطأ، حاول مرة ثانية');
         return;
       }
-
-      const { error: verifyError } = await supabase.auth.verifyOtp({
-        token_hash: result.token_hash,
-        type: 'magiclink',
-      });
-
-      if (verifyError) {
-        setStatus('error');
-        setErrorMsg(verifyError.message);
-        return;
-      }
-
-      window.location.href = '/dashboard';
+      setStatus('success');
+      setMode('login');
     } catch {
       setStatus('error');
       setErrorMsg('تعذر الاتصال بالخادم');
@@ -121,52 +97,63 @@ export default function LoginPage() {
           </button>
         </div>
 
-        {step === 'email' ? (
-          <>
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--navy)', margin: '0 0 8px' }}>{t.title1}</h1>
-            <p style={{ fontSize: 14.5, color: 'var(--muted)', margin: '0 0 24px', lineHeight: 1.6 }}>{t.sub1}</p>
-            <form onSubmit={handleSendCode}>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t.placeholder}
-                dir="ltr"
-                style={{ width: '100%', padding: '13px 14px', fontSize: 15, border: '1px solid var(--line)', borderRadius: 4, marginBottom: 14, fontFamily: 'inherit' }}
-              />
-              <button type="submit" disabled={status === 'busy'} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-                {status === 'busy' ? t.sending : t.send}
-              </button>
-              {status === 'error' && <div style={{ color: 'var(--danger)', fontSize: 13.5, marginTop: 10 }}>{errorMsg}</div>}
-            </form>
-          </>
-        ) : (
-          <>
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--navy)', margin: '0 0 8px' }}>{t.title2}</h1>
-            <p style={{ fontSize: 14.5, color: 'var(--muted)', margin: '0 0 24px', lineHeight: 1.6 }}>{t.sub2(email)}</p>
-            <form onSubmit={handleVerifyCode}>
-              <input
-                type="text"
-                required
-                inputMode="numeric"
-                maxLength={6}
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                placeholder="123456"
-                dir="ltr"
-                style={{ width: '100%', padding: '13px 14px', fontSize: 20, letterSpacing: 6, textAlign: 'center', border: '1px solid var(--line)', borderRadius: 4, marginBottom: 14, fontFamily: 'inherit' }}
-              />
-              <button type="submit" disabled={status === 'busy'} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-                {status === 'busy' ? t.verifying : t.verify}
-              </button>
-              {status === 'error' && <div style={{ color: 'var(--danger)', fontSize: 13.5, marginTop: 10 }}>{errorMsg}</div>}
-            </form>
-            <button onClick={() => setStep('email')} style={{ marginTop: 14, background: 'none', border: 'none', color: 'var(--muted)', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
-              {t.changeEmail}
-            </button>
-          </>
+        <div style={{ display: 'flex', gap: 4, marginBottom: 20, background: '#f1ebda', borderRadius: 6, padding: 4 }}>
+          <button
+            onClick={() => { setMode('login'); setStatus('idle'); setErrorMsg(''); }}
+            style={{
+              flex: 1, padding: '9px 0', fontSize: 14, fontWeight: 600, borderRadius: 4, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+              background: mode === 'login' ? 'var(--navy)' : 'transparent',
+              color: mode === 'login' ? '#fbf7ee' : 'var(--muted)',
+            }}
+          >
+            {t.tabLogin}
+          </button>
+          <button
+            onClick={() => { setMode('signup'); setStatus('idle'); setErrorMsg(''); }}
+            style={{
+              flex: 1, padding: '9px 0', fontSize: 14, fontWeight: 600, borderRadius: 4, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+              background: mode === 'signup' ? 'var(--navy)' : 'transparent',
+              color: mode === 'signup' ? '#fbf7ee' : 'var(--muted)',
+            }}
+          >
+            {t.tabSignup}
+          </button>
+        </div>
+
+        {status === 'success' && (
+          <div style={{ fontSize: 13.5, color: 'var(--navy)', background: '#e7f0ea', padding: 12, borderRadius: 4, marginBottom: 16 }}>
+            {t.signupSuccess}
+          </div>
         )}
+
+        <form onSubmit={mode === 'login' ? handleLogin : handleSignup}>
+          <input
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder={t.emailPlaceholder}
+            dir="ltr"
+            style={{ width: '100%', padding: '13px 14px', fontSize: 15, border: '1px solid var(--line)', borderRadius: 4, marginBottom: 10, fontFamily: 'inherit' }}
+          />
+          <input
+            type="password"
+            required
+            minLength={mode === 'signup' ? 8 : undefined}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={t.passwordPlaceholder}
+            dir="ltr"
+            style={{ width: '100%', padding: '13px 14px', fontSize: 15, border: '1px solid var(--line)', borderRadius: 4, marginBottom: 6, fontFamily: 'inherit' }}
+          />
+          {mode === 'signup' && (
+            <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 14 }}>{t.passwordHint}</div>
+          )}
+          <button type="submit" disabled={status === 'busy'} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: mode === 'login' ? 8 : 0 }}>
+            {status === 'busy' ? t.loading : mode === 'login' ? t.loginBtn : t.signupBtn}
+          </button>
+          {status === 'error' && <div style={{ color: 'var(--danger)', fontSize: 13.5, marginTop: 10 }}>{errorMsg}</div>}
+        </form>
       </div>
     </main>
   );
