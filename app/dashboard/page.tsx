@@ -141,6 +141,10 @@ export default function DashboardPage() {
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
   const [analyzeError, setAnalyzeError] = useState<Record<string, string>>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [passwordStatus, setPasswordStatus] = useState<'idle' | 'busy' | 'error' | 'success'>('idle');
+  const [passwordError, setPasswordError] = useState('');
   const [findingsMap, setFindingsMap] = useState<Record<string, Finding[]>>({});
 
   async function loadData() {
@@ -342,6 +346,25 @@ export default function DashboardPage() {
     await loadData();
   }
 
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+    setPasswordStatus('busy');
+    setPasswordError('');
+    if (newPassword.length < 8) {
+      setPasswordStatus('error');
+      setPasswordError(lang === 'ar' ? '8 أحرف على الأقل' : 'At least 8 characters');
+      return;
+    }
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) {
+      setPasswordStatus('error');
+      setPasswordError(error.message);
+      return;
+    }
+    setPasswordStatus('success');
+    setNewPassword('');
+  }
+
   async function handleLogout() {
     await supabase.auth.signOut();
     window.location.href = '/login';
@@ -368,6 +391,12 @@ export default function DashboardPage() {
               واصل
             </a>
             <button
+              onClick={() => setShowPasswordChange((v) => !v)}
+              style={{ padding: '8px 14px', fontSize: 13, background: 'transparent', color: '#fbf7ee', border: '1px solid rgba(251,247,238,0.35)', borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit' }}
+            >
+              {lang === 'ar' ? 'كلمة المرور' : 'Password'}
+            </button>
+            <button
               onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}
               style={{ padding: '8px 14px', fontSize: 13, background: 'transparent', color: '#fbf7ee', border: '1px solid rgba(251,247,238,0.35)', borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit' }}
             >
@@ -385,6 +414,36 @@ export default function DashboardPage() {
           <div style={{ fontSize: 13.5, color: 'var(--muted)' }}>{userEmail}</div>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--navy)', margin: '4px 0 0' }}>{orgName ?? t.defaultOrg}</h1>
         </div>
+
+        {showPasswordChange && (
+          <div className="card" style={{ marginBottom: 30, borderTop: '3px solid var(--navy)' }}>
+            <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)', margin: '0 0 14px' }}>
+              {lang === 'ar' ? 'تغيير كلمة المرور' : 'Change password'}
+            </h2>
+            {passwordStatus === 'success' ? (
+              <div style={{ fontSize: 13.5, color: 'var(--navy)', background: '#e7f0ea', padding: 12, borderRadius: 4 }}>
+                {lang === 'ar' ? 'تم تغيير كلمة المرور بنجاح.' : 'Password changed successfully.'}
+              </div>
+            ) : (
+              <form onSubmit={handleChangePassword} style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                <input
+                  type="password"
+                  required
+                  minLength={8}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder={lang === 'ar' ? 'كلمة المرور الجديدة (8 أحرف على الأقل)' : 'New password (8+ characters)'}
+                  dir="ltr"
+                  style={{ flex: 1, minWidth: 220, padding: '10px 12px', fontSize: 14, border: '1px solid var(--line)', borderRadius: 4, fontFamily: 'inherit' }}
+                />
+                <button type="submit" disabled={passwordStatus === 'busy'} className="btn btn-primary">
+                  {passwordStatus === 'busy' ? '...' : (lang === 'ar' ? 'حفظ' : 'Save')}
+                </button>
+              </form>
+            )}
+            {passwordStatus === 'error' && <div style={{ color: 'var(--danger)', fontSize: 13, marginTop: 8 }}>{passwordError}</div>}
+          </div>
+        )}
 
         <div className="card" style={{ marginBottom: 30, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
           <div>
