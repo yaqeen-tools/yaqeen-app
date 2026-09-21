@@ -34,7 +34,7 @@ const copy = {
     plan_business_price: '349 درهم',
     plan_business_limit: '300 تحليل عقد شهريًا',
     plan_per_month: '/ شهريًا',
-    pricing_cta: 'قريبًا',
+    pricing_cta: 'ابدأ الآن',
     footer_about: 'من نحن',
     footer_privacy: 'الخصوصية',
     footer_terms: 'الشروط',
@@ -70,7 +70,7 @@ const copy = {
     plan_business_price: 'AED 349',
     plan_business_limit: '300 contract analyses / month',
     plan_per_month: '/ month',
-    pricing_cta: 'Coming soon',
+    pricing_cta: 'Get started',
     footer_about: 'About',
     footer_privacy: 'Privacy',
     footer_terms: 'Terms',
@@ -180,9 +180,9 @@ export default function Home() {
                 {price} <span style={{ fontSize: 13, fontWeight: 400, color: 'var(--muted)' }}>{t.plan_per_month}</span>
               </div>
               <div style={{ fontSize: 13.5, color: 'var(--muted)', marginBottom: 20 }}>{limit}</div>
-              <span className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', opacity: 0.55, cursor: 'not-allowed' }}>
+              <a href="/dashboard" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
                 {t.pricing_cta}
-              </span>
+              </a>
             </div>
           ))}
         </div>
