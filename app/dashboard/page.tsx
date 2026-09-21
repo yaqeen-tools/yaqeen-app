@@ -563,14 +563,25 @@ export default function DashboardPage() {
               {usedThisMonth} / {monthlyLimit} {t.analysesWord}
             </div>
           </div>
-          {plan !== 'business' && (
-            <a
-              href={`mailto:${COMPANY.email}?subject=${encodeURIComponent(t.upgradeSubject)}&body=${encodeURIComponent(t.upgradeBody(t.planNames[plan] ?? plan, userEmail ?? ''))}`}
-              className="btn btn-ghost"
-              style={{ padding: '8px 16px', fontSize: 13 }}
-            >
-              {t.upgrade}
-            </a>
+          {plan !== 'business' && orgId && (
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {plan === 'basic' && (
+                <a
+                  href={`https://yaqeen-uae.lemonsqueezy.com/checkout/buy/8176fb84-7fcd-4193-85f2-07c304a75af8?checkout[custom][organization_id]=${orgId}${userEmail ? `&checkout[email]=${encodeURIComponent(userEmail)}` : ''}`}
+                  className="btn btn-ghost"
+                  style={{ padding: '8px 16px', fontSize: 13 }}
+                >
+                  {lang === 'ar' ? 'ترقية للاحترافية' : 'Upgrade to Pro'}
+                </a>
+              )}
+              <a
+                href={`https://yaqeen-uae.lemonsqueezy.com/checkout/buy/78c0445b-3392-4e1f-9600-b1f6123661de?checkout[custom][organization_id]=${orgId}${userEmail ? `&checkout[email]=${encodeURIComponent(userEmail)}` : ''}`}
+                className="btn btn-ghost"
+                style={{ padding: '8px 16px', fontSize: 13 }}
+              >
+                {lang === 'ar' ? 'ترقية للأعمال' : 'Upgrade to Business'}
+              </a>
+            </div>
           )}
         </div>
 
